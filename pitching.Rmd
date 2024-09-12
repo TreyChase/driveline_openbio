@@ -1,0 +1,38 @@
+Author: Trey Chase
+Date: sys.date()
+
+
+```{r loading libraries, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
+
+```{r loading data}
+df <- read_csv("/Users/treychase/Downloads/poi_metrics.csv")
+```
+
+
+```{r data filtering}
+df <- df %>%
+  select(
+    session_pitch,
+    session,
+    pitch_type,
+    pitch_speed_mph,
+    rotation_hip_shoulder_separation_fp
+  )
+```
+
+```{r plotting, echo=FALSE}
+ggplot(df) + 
+  geom_boxplot(aes(x=pitch_speed_mph))
+```
+
+
+
+
+
+
+
