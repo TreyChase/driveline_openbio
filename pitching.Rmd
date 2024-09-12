@@ -36,3 +36,6 @@ ggplot(df) +
 
 
 
+
+=======
+>>>>>>> a0fb143bdbd7df3d39fc18a15f5e8f8c5328612a
