@@ -1,0 +1,8 @@
+Author: Trey Chase
+Date: sys.date()
+
+
+```{r loading libraries, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+```
