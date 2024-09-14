@@ -12,16 +12,21 @@ library(readr)
 ```{r loading data}
 df <- read_csv("/Users/treychase/Downloads/poi_metrics.csv")
 ```
-
+```{r df structure}
+dim(df)
+head(df)
+summary(df)
+```
 
 ```{r data filtering}
 df <- df %>%
   select(
-    session_pitch,
-    session,
-    pitch_type,
     pitch_speed_mph,
-    rotation_hip_shoulder_separation_fp
+    rotation_hip_shoulder_separation_fp,
+    elbow_flexion_fp,
+    elbow_pronation_fp,
+    shoulder_horizontal_abduction_fp,
+    shoulder_external_rotation_fp,
   )
 ```
 
@@ -30,6 +35,21 @@ ggplot(df) +
   geom_boxplot(aes(x=pitch_speed_mph))
 ```
 
+```{r fitting the model, echo=FALSE}
+#fitting the model with pitch speed as the response variable, using Rs "lm" function
+pitch_speed_model <- lm(pitch_speed_mph ~ rotation_hip_shoulder_separation_fp + 
+    elbow_flexion_fp +
+    elbow_pronation_fp +
+    shoulder_horizontal_abduction_fp +
+    shoulder_external_rotation_fp, data = df)
+```
+
+
+```{r correlation plot}
+library(ggcorrplot)
+corr_matrix = cor(df)
+ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower", lab = TRUE)
+```
 
 
 
@@ -37,5 +57,3 @@ ggplot(df) +
 
 
 
-=======
->>>>>>> a0fb143bdbd7df3d39fc18a15f5e8f8c5328612a
