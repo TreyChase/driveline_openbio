@@ -46,14 +46,22 @@ pitch_speed_model <- lm(pitch_speed_mph ~ rotation_hip_shoulder_separation_fp +
 
 
 ```{r correlation plot}
+#checking multi-collinearity condition
 library(ggcorrplot)
 corr_matrix = cor(df)
 ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower", lab = TRUE)
 ```
 
 
+```{r residual historgram}
+residuals = pitch_speed_model$residuals
+hist(residuals)
+```
 
-
-
+```{r normal plot of residuals}
+qqnorm(residuals)
+qqline(residuals)
+#checking for normality in the residuals, looks approximately normal
+```
 
 
