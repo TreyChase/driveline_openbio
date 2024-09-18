@@ -49,8 +49,11 @@ max_var
 ```
 
 ```{r}
-ggcorrplot(corr_matrix)
+cor_plot = ggcorrplot(corr_matrix)
+ggsave("dl_corr_plot.png", plot = cor_plot, width = 10, height = 10)
 ```
+
+
 ```{r plotting most correlated variable}
 ggplot(df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) + 
   geom_point() +
@@ -124,6 +127,9 @@ plot(poly_model)
 ```
 
 
+```{r}
+
+```
 
 
 
