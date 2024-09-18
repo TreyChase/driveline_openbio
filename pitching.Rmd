@@ -7,6 +7,7 @@ library(ggplot2)
 library(dplyr)
 library(readr)
 library(GGally)
+library(tidyr)
 ```
 
 
@@ -20,58 +21,64 @@ summary(df)
 ```
 
 ```{r data selection}
-df <- df %>%
+#obtaining all quantitative variables, dropping all rows with na
+df = df |>
+  select_if(
+    is.numeric, 
+  ) |>
+  drop_na() |>
   select(
-    pitch_speed_mph,
-    rotation_hip_shoulder_separation_fp,
-    elbow_flexion_fp,
-    elbow_pronation_fp,
-    shoulder_horizontal_abduction_fp,
-    shoulder_external_rotation_fp,
+    -(session) #removing session column
   )
-```
-
-```{r plotting, echo=FALSE}
-ggplot(df) + 
-  geom_boxplot(aes(x=pitch_speed_mph))
-```
-
-```{r fitting the model, echo=FALSE}
-#fitting the model with pitch speed as the response variable, using Rs "lm" function
-pitch_speed_model <- lm(pitch_speed_mph ~ rotation_hip_shoulder_separation_fp + 
-    elbow_flexion_fp +
-    elbow_pronation_fp +
-    shoulder_horizontal_abduction_fp +
-    shoulder_external_rotation_fp, data = df)
-summary(pitch_speed_model)
 ```
 
 
 ```{r correlation plot, echo=FALSE}
-#checking multi collinearity condition
+#checking multi collinearity condition, as well as obtaining the most correlated value with pitch speed
 library(ggcorrplot)
 corr_matrix = cor(df)
-ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower", lab = TRUE)
+diag(corr_matrix) = NA
 
-quant.vars = df[, c("pitch_speed_mph", 
-                    "rotation_hip_shoulder_separation_fp", 
-                    "elbow_flexion_fp", 
-                    "elbow_pronation_fp", 
-                    "shoulder_horizontal_abduction_fp",
-                    "shoulder_external_rotation_fp")]
-ggpairs(quant.vars)
+first_column <- corr_matrix[,1]
+max_value <- max(first_column, na.rm = TRUE)
+max_var <- rownames(corr_matrix)[which(first_column == max_value)]
+
+
+max_value
+max_var
 ```
 
 
-```{r residual historgram}
-residuals = pitch_speed_model$residuals
-hist(residuals)
+```{r plotting most correlated variable}
+ggplot(df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) + 
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  labs(
+    x = "Elbow Transfer FP",
+    y= "Pitch Speed MPH",
+    title = "Elbow Transfer Force vs. Velocity"
+  )
 ```
 
-```{r normal plot of residuals}
-qqnorm(residuals)
-qqline(residuals)
-#checking for normality in the residuals, looks approximately normal
+```{r plotting transformed}
+ggplot(df, aes(x=(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  labs(
+    x = "Elbow Transfer Force Plate",
+    y= "Pitch Speed MPH",
+    title = "Elbow Transfer Force vs. Log Velocity"
+  )
+```
+
+
+
+
+
+
+```{r transformation plot}
+model = lm(pitch_speed_mph ~ elbow_transfer_fp_br, data=df)
+summary(model)
 ```
 
 
