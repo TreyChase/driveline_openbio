@@ -48,10 +48,20 @@ max_value
 max_var
 ```
 
-```{r}
+```{r correlation plot}
 cor_plot = ggcorrplot(corr_matrix)
-ggsave("dl_corr_plot.png", plot = cor_plot, width = 10, height = 10)
+ggsave("dl_corr_plot.png", plot = cor_plot, width = 70, height = 70, limitsize = FALSE)
 ```
+Saving the correlation plot to examine which variables are correlated with pitch speed.
+
+
+
+```{r looking at high correlation}
+
+
+
+```
+
 
 
 ```{r plotting most correlated variable}
