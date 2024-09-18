@@ -48,7 +48,9 @@ max_value
 max_var
 ```
 
-
+```{r}
+ggcorrplot(corr_matrix)
+```
 ```{r plotting most correlated variable}
 ggplot(df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) + 
   geom_point() +
@@ -79,6 +81,49 @@ ggplot(df, aes(x=(elbow_transfer_fp_br), y=log(pitch_speed_mph))) +
 ```{r transformation plot}
 model = lm(pitch_speed_mph ~ elbow_transfer_fp_br, data=df)
 summary(model)
+plot(model)
 ```
+
+
+```{r cooks distance}
+#removing the high leverage values using Cook's distance
+cooks_dist <- cooks.distance(model)
+cooks_threshold <- 4 / nrow(df)
+high_cooks <- which(cooks_dist > cooks_threshold)
+df <- df[-high_cooks, ]
+```
+
+
+```{r new model fit}
+model = glm(log(pitch_speed_mph) ~ (elbow_transfer_fp_br)^2, data=df)
+summary(model)
+plot(model)
+cat("Pseudo R^2:",1 - (model$deviance / model$null.deviance))
+```
+
+
+
+```{r plotting new model fit}
+ggplot(df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2),color="blue") +
+  labs(
+    x = "Log Elbow Transfer Force Plate",
+    y= "Log Pitch Speed MPH",
+    title = "Elbow Transfer Force Squared vs. Log Velocity"
+  )
+
+```
+
+The polynomial looks like a better fit than the line.
+
+```{r fitting a polynomial model}
+poly_model = lm(log(pitch_speed_mph) ~ poly(log(elbow_transfer_fp_br), 2), data = df)
+summary(poly_model)
+plot(poly_model)
+```
+
+
+
 
 
