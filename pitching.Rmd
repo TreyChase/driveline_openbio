@@ -242,14 +242,24 @@ Recursively remove VIFs > 4 to ensure the multicollinearity check is confirmed.
 ```{r removing high vif EVs}
 signif_all <- names(vifs)
 
-while(any(vifs > 10)){ #while any of the vifs have a value greater than 4
-  var_with_max_vif <- names(which(vifs == max(vifs)))  # get the var with max vif
-  signif_all <- signif_all[!(signif_all) %in% var_with_max_vif]  # remove
-  myForm <- as.formula(paste("pitch_speed_mph ~ ", paste (signif_all, collapse=" + "), sep=""))  # new formula
+while(any(vifs >= 10)) {  # while any of the vifs have a value greater than 10
+  var_with_max_vif <- names(which.max(vifs))  # get the var with max vif
+  signif_all <- signif_all[!signif_all %in% var_with_max_vif]  # remove
+  myForm <- as.formula(paste("pitch_speed_mph ~ ", paste(signif_all, collapse=" + "), sep=""))  # new formula
   selected_mod <- lm(myForm, data=train_df)  # re-build model with new formula
-  all_vifs <- car::vif(selected_mod)
+  vifs <- car::vif(selected_mod)  # update VIFs
 }
+
 summary(selected_mod)
+
 ```
+
+Multicollinearity has been removed. Now we need to remove the variables in the model that are not statistically significant from the t-test.
+
+```{r removing not statistically significant variables}
+
+```
+
+
 
 
