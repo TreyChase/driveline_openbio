@@ -24,7 +24,7 @@ summary(df)
 
 ```{r data selection}
 #obtaining all quantitative variables, dropping all rows with na
-df = df |>
+q_df = df |>
   select_if(
     is.numeric, 
   ) |>
@@ -38,7 +38,7 @@ df = df |>
 ```{r correlation plot, echo=FALSE}
 #checking multi collinearity condition, as well as obtaining the most correlated value with pitch speed
 library(ggcorrplot)
-corr_matrix = cor(df)
+corr_matrix = cor(q_df)
 diag(corr_matrix) = NA
 
 first_column <- corr_matrix[,1] #looking at the pitch speed column
@@ -56,11 +56,21 @@ ggsave("dl_corr_plot.png", plot = cor_plot, width = 30, height = 30)
 ```
 Saving the correlation plot to examine which variables are correlated with pitch speed.
 
+```{r velocity distribution}
+ggplot(q_df, aes(x = pitch_speed_mph)) +
+  geom_histogram(aes(y = ..density..), binwidth = 1, color = "white", fill = "blue", alpha = 0.7) +
+  geom_density(color = "orange", size = 1) +
+  labs(x = "Pitch Speed (MPH)",
+       y = "Density",
+       title = "Histogram of Pitch Speed with Estimated Density Curve")
+```
+
+We can see that the distribution of pitch speeds are slightly skewed left but approximately normal.
 
 
 ```{r splitting data}
 set.seed(123)  # For reproducibility
-split <- initial_split(df, prop = 0.8) #splitting data into test and training data
+split <- initial_split(q_df, prop = 0.8) #splitting data into test and training data
 train_df <- training(split)
 test_df <- testing(split)
 ```
@@ -132,6 +142,13 @@ plot(selected_mod)
 
 
 ```{r predicting values}
-predict_df
+predict_df = predict(selected_mod, test_df, level = 0.95, interval = "predict")
 ```
+
+
+```{r adding to the test df}
+head(test_df)
+
+```
+
 
