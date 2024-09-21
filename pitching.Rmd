@@ -9,6 +9,9 @@ Date: sys.date()
 ## Driveline Open Biomechanics Project
 
 
+## Description
+
+
 ```{r loading packages, echo=FALSE, warning= FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
@@ -17,6 +20,7 @@ library(GGally)
 library(stats)
 library(rsample)
 library(tidyverse)
+library(boot)
 ```
 
 
@@ -176,3 +180,32 @@ combined_df = combined_df |>
 
 write.csv(combined_df, "prediction_data.csv", row.names = FALSE)
 ```
+
+
+```{r bootstrapping R^2}
+rsquared_bootstrap <- function(data, indices) {
+  # Re-sample the data
+  resampled_data <- data[indices, ]
+  
+  # Fit the model on the resampled data using the original formula
+  boot_model <- lm(formula(selected_mod), data = resampled_data)
+  
+  # Return the R-squared value
+  return(summary(boot_model)$r.squared)
+}
+
+bootstrap = boot(data = q_df, statistic = rsquared_bootstrap, R = 3000) #generating the R^2 bootstrap samples
+
+bootstrap
+
+boot.ci(bootstrap, type = "perc")
+```
+
+
+The results of the bootstrapping indicates that the regression model is sound, with an R-squared confidence interval between .8016 and .8619, and an R-squared of 0.8248. Thus with the data that is provided the model predicts pitch speed with 80-87% accuracy.
+
+
+
+
+
+
