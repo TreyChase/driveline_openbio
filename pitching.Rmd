@@ -7,9 +7,9 @@ library(ggplot2)
 library(dplyr)
 library(readr)
 library(GGally)
-library(tidyr)
 library(stats)
 library(rsample)
+library(tidyverse)
 ```
 
 
@@ -188,7 +188,7 @@ ggsave("elbow_plot.png", e_plot)
 
 
 ```{r multivariate model}
-m_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),2) + poly(log(shoulder_transfer_fp_br, 2)) + poly(log(elbow_transfer_fp_br), 2), data = train_df)
+m_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),2) + poly(log(shoulder_transfer_fp_br), 2) + poly(log(elbow_transfer_fp_br), 2), data = train_df)
 
 summary(m_model)
 plot(m_model)
@@ -196,10 +196,49 @@ plot(m_model)
 
 Integrating the three most correlated variables, we get a multiple R^2 of 0.5 and an adjusted R^2 of 0.49. This is okay, but there could be a better model out there.
 
+Poly 2 is not significant for elbow transfer, 
+
+
+```{r looking at interaction terms}
+n_model = lm(log(pitch_speed_mph) ~ log(thorax_distal_transfer_fp_br) + I(log(shoulder_transfer_fp_br)^2) + poly(log(elbow_transfer_fp_br)),data = train_df)
+
+summary(n_model)
+plot(n_model)
+```
+All coefficients in this simpler model are statistically significant, so the all explanatory variables in the model explain velocity.
+
+Observations 111 and 70 are low leverage points that are outliers, 220 is an outlier and has high leverage.
+
+```{r removing outliers}
+train_df = train_df[-c(111, 70),]
+```
+
+This would not apply well to larger data frames, but this method of removing outliers is ok for this sample size. 
+
+
+```{r multivariate model without outliers}
+
+n_model = lm(log(pitch_speed_mph) ~ log(thorax_distal_transfer_fp_br) + I(log(shoulder_transfer_fp_br)^2) + poly(log(elbow_transfer_fp_br)),data = train_df)
+
+summary(n_model)
+plot(n_model)
+```
+
+
+```{r stepwise regression}
+lm_mod = lm(pitch_speed_mph ~., data=train_df)
+selected_mod = step(lm_mod)
+summary(selected_mod)
+```
+```{r vifs}
+vifs = vif(selected_mod)
+print(vifs)
+```
 
 
 
 
+Recursively remove VIFs > 4 to ensure the multicollinearity check is confirmed.
 
 
 
