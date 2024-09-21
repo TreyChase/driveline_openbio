@@ -65,167 +65,9 @@ train_df <- training(split)
 test_df <- testing(split)
 ```
 
+This step-wise regression will start by constructing regression models with all variables present, and will iterate and remove one variable based on the lowest AIC of the models.
 
-
-```{r elbow transfer linear plot}
-ggplot(train_df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) + 
-  geom_point() +
-  geom_smooth(method = "lm", color="blue") +
-  labs(
-    x = "Elbow Transfer FP",
-    y= "Pitch Speed MPH",
-    title = "Elbow Transfer Force vs. Velocity"
-  )
-```
-
-```{r elbow transfer plotting transformed}
-ggplot(train_df, aes(x=(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
-  geom_point() +
-  geom_smooth(method = "lm", color="blue") +
-  labs(
-    x = "Elbow Transfer Force Plate",
-    y= "Pitch Speed MPH",
-    title = "Elbow Transfer Force vs. Log Velocity"
-  )
-```
-
-
-
-
-
-
-```{r transformation plot}
-model = lm(pitch_speed_mph ~ elbow_transfer_fp_br, data=train_df)
-summary(model)
-plot(model)
-```
-
-
-```{r cooks distance}
-#removing the high leverage values using Cook's distance
-cooks_dist <- cooks.distance(model)
-cooks_threshold <- 4 / nrow(train_df)
-high_cooks <- which(cooks_dist > cooks_threshold)
-train_df <- train_df[-high_cooks, ]
-```
-
-
-```{r plotting new model fit}
-ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ poly(x, 2),color="blue") +
-  labs(
-    x = "Log Elbow Transfer Force Plate",
-    y= "Log Pitch Speed MPH",
-    title = "Elbow Transfer Force Squared vs. Log Velocity"
-  )
-```
-
-The polynomial looks like a better fit than the line.
-
-```{r fitting a polynomial model}
-poly_model = lm(log(pitch_speed_mph) ~ poly(log(elbow_transfer_fp_br), 2), data = train_df)
-summary(poly_model)
-plot(poly_model)
-```
-
-
-```{r shoulder transfer model}
-shoulder_model = lm(log(pitch_speed_mph) ~ poly(shoulder_transfer_fp_br, 2), data = train_df)
-summary(shoulder_model)
-plot(shoulder_model)
-```
-
-```{r removing high leverage points}
-cooks_dist <- cooks.distance(shoulder_model)
-cooks_threshold <- 4 / nrow(train_df)
-high_cooks <- which(cooks_dist > cooks_threshold)
-train_df <- train_df[-high_cooks, ]
-```
-
-The model yield an R-Squared of about 0.5 after removing outliers. This is okay for non-linear regression, but there is room for improvement.
-
-
-```{r fitting models}
-thorax_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),3), data = train_df)
-summary(thorax_model)
-```
-
-We obtain an R^2 of roughly 0.42.
-
-```{r plot of three predcitors}
-t_plot = ggplot(train_df, aes(x=(log(thorax_distal_transfer_fp_br)), y=log(pitch_speed_mph))) + 
-  geom_point() +
-  geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
-  labs(
-    x = "Thorax Distal Transfer Force Plate",
-    y= "Log Pitch Speed MPH",
-    title = "Thorax Distal Transfer Force Squared vs. Log Velocity"
-  ) #thorax
-
-s_plot = ggplot(train_df, aes(x=(log(shoulder_transfer_fp_br)), y=log(pitch_speed_mph))) + 
-  geom_point() +
-  geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
-  labs(
-    x = "Shoulder Transfer Force Plate",
-    y= "Log Pitch Speed MPH",
-    title = "Shoulder Transfer Force Squared vs. Log Velocity"
-  )
-
-e_plot = ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ poly(x, 2),color="blue") +
-  labs(
-    x = "Log Elbow Transfer Force Plate",
-    y= "Log Pitch Speed MPH",
-    title = "Elbow Transfer Force Squared vs. Log Velocity"
-  )
-
-ggsave("thorax_plot.png", t_plot)
-ggsave("shoulder_plot.png", s_plot)
-ggsave("elbow_plot.png", e_plot)
-```
-
-
-```{r multivariate model}
-m_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),2) + poly(log(shoulder_transfer_fp_br), 2) + poly(log(elbow_transfer_fp_br), 2), data = train_df)
-
-summary(m_model)
-plot(m_model)
-```
-
-Integrating the three most correlated variables, we get a multiple R^2 of 0.5 and an adjusted R^2 of 0.49. This is okay, but there could be a better model out there.
-
-Poly 2 is not significant for elbow transfer, 
-
-
-```{r looking at interaction terms}
-n_model = lm(log(pitch_speed_mph) ~ log(thorax_distal_transfer_fp_br) + I(log(shoulder_transfer_fp_br)^2) + poly(log(elbow_transfer_fp_br)),data = train_df)
-
-summary(n_model)
-plot(n_model)
-```
-All coefficients in this simpler model are statistically significant, so the all explanatory variables in the model explain velocity.
-
-Observations 111 and 70 are low leverage points that are outliers, 220 is an outlier and has high leverage.
-
-```{r removing outliers}
-train_df = train_df[-c(111, 70),]
-```
-
-This would not apply well to larger data frames, but this method of removing outliers is ok for this sample size. 
-
-
-```{r multivariate model without outliers}
-
-n_model = lm(log(pitch_speed_mph) ~ log(thorax_distal_transfer_fp_br) + I(log(shoulder_transfer_fp_br)^2) + poly(log(elbow_transfer_fp_br)),data = train_df)
-
-summary(n_model)
-plot(n_model)
-```
-
-
-```{r stepwise regression}
+```{r stepwise regression and choosing model}
 lm_mod = lm(pitch_speed_mph ~., data=train_df)
 selected_mod = step(lm_mod)
 summary(selected_mod)
@@ -237,7 +79,7 @@ print(vifs)
 ```
 
 
-Recursively remove VIFs > 4 to ensure the multicollinearity check is confirmed.
+Recursively remove VIFs > 4 to ensure the multi-collinearity check is confirmed.
 
 ```{r removing high vif EVs}
 signif_all <- names(vifs)
@@ -281,12 +123,15 @@ while(length(not_significant) > 0){
 summary(selected_mod)
 ```
 
-Multicollinearity and statistical significance (p < 0.05) have been confirmed.
+Multi-collinearity and statistical significance (p < 0.05) have been confirmed.
 
 
-```{r}
-
+```{r plots of the model}
+plot(selected_mod)
 ```
 
 
+```{r predicting values}
+predict_df
+```
 
