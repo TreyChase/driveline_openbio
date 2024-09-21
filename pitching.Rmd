@@ -154,7 +154,7 @@ summary(thorax_model)
 We obtain an R^2 of roughly 0.42.
 
 ```{r plot of three predcitors}
-ggplot(train_df, aes(x=(thorax_distal_transfer_fp_br), y=log(pitch_speed_mph))) + 
+t_plot = ggplot(train_df, aes(x=(thorax_distal_transfer_fp_br), y=log(pitch_speed_mph))) + 
   geom_point() +
   geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
   labs(
@@ -163,7 +163,7 @@ ggplot(train_df, aes(x=(thorax_distal_transfer_fp_br), y=log(pitch_speed_mph))) 
     title = "Thorax Distal Transfer Force Squared vs. Log Velocity"
   ) #thorax
 
-ggplot(train_df, aes(x=(shoulder_transfer_fp_br), y=log(pitch_speed_mph))) + 
+s_plot = ggplot(train_df, aes(x=(shoulder_transfer_fp_br), y=log(pitch_speed_mph))) + 
   geom_point() +
   geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
   labs(
@@ -172,7 +172,7 @@ ggplot(train_df, aes(x=(shoulder_transfer_fp_br), y=log(pitch_speed_mph))) +
     title = "Shoulder Transfer Force Squared vs. Log Velocity"
   )
 
-ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
+e_plot = ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
   geom_point() +
   geom_smooth(method = "lm", formula = y ~ poly(x, 2),color="blue") +
   labs(
@@ -180,6 +180,10 @@ ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) +
     y= "Log Pitch Speed MPH",
     title = "Elbow Transfer Force Squared vs. Log Velocity"
   )
+
+ggsave("thorax_plot.png", t_plot)
+ggsave("shoulder_plot.png", s_plot)
+ggsave("elbow_plot.png", e_plot)
 ```
 
 
