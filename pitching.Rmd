@@ -2,12 +2,14 @@ Author: Trey Chase
 Date: sys.date()
 
 
-```{r loading libraries, echo=FALSE}
+```{r loading packages, echo=FALSE, warning= FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(readr)
 library(GGally)
 library(tidyr)
+library(stats)
+library(rsample)
 ```
 
 
@@ -39,8 +41,8 @@ library(ggcorrplot)
 corr_matrix = cor(df)
 diag(corr_matrix) = NA
 
-first_column <- corr_matrix[,1]
-max_value <- max(first_column, na.rm = TRUE)
+first_column <- corr_matrix[,1] #looking at the pitch speed column
+max_value <- max(first_column, na.rm = TRUE) #finding the maximum correlated variable with pitch speed
 max_var <- rownames(corr_matrix)[which(first_column == max_value)]
 
 
@@ -49,23 +51,24 @@ max_var
 ```
 
 ```{r correlation plot}
-cor_plot = ggcorrplot(corr_matrix)
-ggsave("dl_corr_plot.png", plot = cor_plot, width = 70, height = 70, limitsize = FALSE)
+cor_plot = ggcorrplot(corr_matrix) 
+ggsave("dl_corr_plot.png", plot = cor_plot, width = 30, height = 30)
 ```
 Saving the correlation plot to examine which variables are correlated with pitch speed.
 
 
 
-```{r looking at high correlation}
-
-
-
+```{r splitting data}
+set.seed(123)  # For reproducibility
+split <- initial_split(df, prop = 0.8) #splitting data into test and training data
+train_df <- training(split)
+test_df <- testing(split)
 ```
 
 
 
-```{r plotting most correlated variable}
-ggplot(df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) + 
+```{r elbow transfer linear plot}
+ggplot(train_df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) + 
   geom_point() +
   geom_smooth(method = "lm", color="blue") +
   labs(
@@ -75,8 +78,8 @@ ggplot(df, aes(x=elbow_transfer_fp_br, y=pitch_speed_mph)) +
   )
 ```
 
-```{r plotting transformed}
-ggplot(df, aes(x=(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
+```{r elbow transfer plotting transformed}
+ggplot(train_df, aes(x=(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
   geom_point() +
   geom_smooth(method = "lm", color="blue") +
   labs(
@@ -92,7 +95,7 @@ ggplot(df, aes(x=(elbow_transfer_fp_br), y=log(pitch_speed_mph))) +
 
 
 ```{r transformation plot}
-model = lm(pitch_speed_mph ~ elbow_transfer_fp_br, data=df)
+model = lm(pitch_speed_mph ~ elbow_transfer_fp_br, data=train_df)
 summary(model)
 plot(model)
 ```
@@ -101,23 +104,14 @@ plot(model)
 ```{r cooks distance}
 #removing the high leverage values using Cook's distance
 cooks_dist <- cooks.distance(model)
-cooks_threshold <- 4 / nrow(df)
+cooks_threshold <- 4 / nrow(train_df)
 high_cooks <- which(cooks_dist > cooks_threshold)
-df <- df[-high_cooks, ]
+train_df <- train_df[-high_cooks, ]
 ```
-
-
-```{r new model fit}
-model = glm(log(pitch_speed_mph) ~ (elbow_transfer_fp_br)^2, data=df)
-summary(model)
-plot(model)
-cat("Pseudo R^2:",1 - (model$deviance / model$null.deviance))
-```
-
 
 
 ```{r plotting new model fit}
-ggplot(df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
+ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
   geom_point() +
   geom_smooth(method = "lm", formula = y ~ poly(x, 2),color="blue") +
   labs(
@@ -125,21 +119,85 @@ ggplot(df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) +
     y= "Log Pitch Speed MPH",
     title = "Elbow Transfer Force Squared vs. Log Velocity"
   )
-
 ```
 
 The polynomial looks like a better fit than the line.
 
 ```{r fitting a polynomial model}
-poly_model = lm(log(pitch_speed_mph) ~ poly(log(elbow_transfer_fp_br), 2), data = df)
+poly_model = lm(log(pitch_speed_mph) ~ poly(log(elbow_transfer_fp_br), 2), data = train_df)
 summary(poly_model)
 plot(poly_model)
 ```
 
 
-```{r}
-
+```{r shoulder transfer model}
+shoulder_model = lm(log(pitch_speed_mph) ~ poly(shoulder_transfer_fp_br, 2), data = train_df)
+summary(shoulder_model)
+plot(shoulder_model)
 ```
+
+```{r removing high leverage points}
+cooks_dist <- cooks.distance(shoulder_model)
+cooks_threshold <- 4 / nrow(train_df)
+high_cooks <- which(cooks_dist > cooks_threshold)
+train_df <- train_df[-high_cooks, ]
+```
+
+The model yield an R-Squared of about 0.5 after removing outliers. This is okay for non-linear regression, but there is room for improvement.
+
+
+```{r fitting models}
+thorax_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),2), data = train_df)
+summary(thorax_model)
+```
+
+We obtain an R^2 of roughly 0.42.
+
+```{r plot of three predcitors}
+ggplot(train_df, aes(x=(thorax_distal_transfer_fp_br), y=log(pitch_speed_mph))) + 
+  geom_point() +
+  geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
+  labs(
+    x = "Thorax Distal Transfer Force Plate",
+    y= "Log Pitch Speed MPH",
+    title = "Thorax Distal Transfer Force Squared vs. Log Velocity"
+  ) #thorax
+
+ggplot(train_df, aes(x=(shoulder_transfer_fp_br), y=log(pitch_speed_mph))) + 
+  geom_point() +
+  geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
+  labs(
+    x = "Shoulder Transfer Force Plate",
+    y= "Log Pitch Speed MPH",
+    title = "Shoulder Transfer Force Squared vs. Log Velocity"
+  )
+
+ggplot(train_df, aes(x=log(elbow_transfer_fp_br), y=log(pitch_speed_mph))) + 
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2),color="blue") +
+  labs(
+    x = "Log Elbow Transfer Force Plate",
+    y= "Log Pitch Speed MPH",
+    title = "Elbow Transfer Force Squared vs. Log Velocity"
+  )
+```
+
+
+```{r multivariate model}
+m_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),2) + poly(log(shoulder_transfer_fp_br, 2)) + poly(log(elbow_transfer_fp_br), 2), data = train_df)
+
+summary(m_model)
+plot(m_model)
+```
+
+Integrating the three most correlated variables, we get a multiple R^2 of 0.5 and an adjusted R^2 of 0.49. This is okay, but there could be a better model out there.
+
+
+```{additive model}
+gam(formula = pitch_speed_mph ~ s(elbow_absorption_fp_br))
+```
+
+
 
 
 
