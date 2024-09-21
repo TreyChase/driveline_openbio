@@ -73,7 +73,8 @@ pitch_speed_plot = ggplot(q_df, aes(x = pitch_speed_mph)) +
   geom_density(color = "orange", size = 1) +
   labs(x = "Pitch Speed (MPH)",
        y = "Density",
-       title = "Histogram of Pitch Speed with Estimated Density Curve")
+       title = "Histogram of Pitch Speed with Estimated Density Curve",
+       subtitle = "Trey Chase")
 
 pitch_speed_plot
 ggsave("pitch_speed_plot.png", pitch_speed_plot)
@@ -84,7 +85,7 @@ We can see that the distribution of pitch speeds are slightly skewed left but ap
 
 ```{r splitting data}
 set.seed(123)  # For reproducibility
-split <- initial_split(q_df, prop = 0.8) #splitting data into test and training data
+split <- initial_split(q_df, prop = 0.8) #splitting data into test and training data, looking for an 80/20 ratio
 train_df <- training(split)
 test_df <- testing(split)
 ```
@@ -179,6 +180,20 @@ combined_df = combined_df |>
   )
 
 write.csv(combined_df, "prediction_data.csv", row.names = FALSE)
+```
+```{r plotting predicted vs. actual}
+predicted_plot = ggplot(combined_df) +
+  geom_point(aes(x = pitch_speed_mph, y = predicted_mph)) +
+  geom_smooth(aes(x = pitch_speed_mph, y = predicted_mph), method = "lm", formula = y ~ x, se = FALSE) +
+  labs(
+    x = "Pitch Speed (MPH)",
+    y = "Predicted Pitch Speed (MPH)",
+    title = "Pitch Speed Vs. Predicted Pitch Speed",
+    subtitle = "Trey Chase"
+  )
+
+predicted_plot
+ggsave("prediced_plot.png", predicted_plot)
 ```
 
 
