@@ -167,7 +167,7 @@ head(predict_df)
 combined_df = bind_cols(predict_df, test_df) #combining the two data sets together by observation number
 
 combined_df = combined_df |>
-  select(c(pitch_speed_mph, fit, upr, lwr)) |>
+  select(c(pitch_speed_mph, round(fit,1), round(upr,1), round(lwr,1))) |>
   rename(
     predicted_mph = fit,
     upper_bound = upr,
