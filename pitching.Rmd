@@ -57,12 +57,15 @@ ggsave("dl_corr_plot.png", plot = cor_plot, width = 30, height = 30)
 Saving the correlation plot to examine which variables are correlated with pitch speed.
 
 ```{r velocity distribution}
-ggplot(q_df, aes(x = pitch_speed_mph)) +
+pitch_speed_plot = ggplot(q_df, aes(x = pitch_speed_mph)) +
   geom_histogram(aes(y = ..density..), binwidth = 1, color = "white", fill = "blue", alpha = 0.7) +
   geom_density(color = "orange", size = 1) +
   labs(x = "Pitch Speed (MPH)",
        y = "Density",
        title = "Histogram of Pitch Speed with Estimated Density Curve")
+
+pitch_speed_plot
+ggsave("pitch_speed_plot.png", pitch_speed_plot)
 ```
 
 We can see that the distribution of pitch speeds are slightly skewed left but approximately normal.
@@ -137,18 +140,32 @@ Multi-collinearity and statistical significance (p < 0.05) have been confirmed.
 
 
 ```{r plots of the model}
-plot(selected_mod)
+model_plot = plot(selected_mod)
+model_plot
+ggsave("model_plot.png", model_plot)
 ```
 
 
 ```{r predicting values}
-predict_df = predict(selected_mod, test_df, level = 0.95, interval = "predict")
+predict_df = as.data.frame(predict(selected_mod, test_df, level = 0.95, interval = "predict"))
 ```
 
 
 ```{r adding to the test df}
-head(test_df)
+head(test_df |>
+       select(pitch_speed_mph))
 
+head(predict_df)
+
+combined_df = bind_cols(predict_df, test_df) #combining the two data sets together by observation number
+
+combined_df = combined_df |>
+  select(c(pitch_speed_mph, fit, upr, lwr)) |>
+  rename(
+    predicted_mph = fit,
+    upper_bound = upr,
+    lower_bound = lwr
+  )
+
+write.csv(combined_df, "prediction_data.csv", row.names = FALSE)
 ```
-
-
