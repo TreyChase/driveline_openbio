@@ -1,5 +1,12 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 Author: Trey Chase
 Date: sys.date()
+
+## Driveline Open Biomechanics Project
 
 
 ```{r loading packages, echo=FALSE, warning= FALSE, message=FALSE}
@@ -13,7 +20,7 @@ library(tidyverse)
 ```
 
 
-```{r loading data}
+```{r loading data, echo=FALSE}
 df <- read_csv("/Users/treychase/Downloads/poi_metrics.csv")
 ```
 ```{r df structure}
@@ -35,7 +42,7 @@ q_df = df |>
 ```
 
 
-```{r correlation plot, echo=FALSE}
+```{r correlation matrix, echo=FALSE}
 #checking multi collinearity condition, as well as obtaining the most correlated value with pitch speed
 library(ggcorrplot)
 corr_matrix = cor(q_df)
@@ -80,7 +87,7 @@ test_df <- testing(split)
 
 This step-wise regression will start by constructing regression models with all variables present, and will iterate and remove one variable based on the lowest AIC of the models.
 
-```{r stepwise regression and choosing model}
+```{r stepwise regression and choosing model, echo=FALSE, results = 'hide'}
 lm_mod = lm(pitch_speed_mph ~., data=train_df)
 selected_mod = step(lm_mod)
 summary(selected_mod)
