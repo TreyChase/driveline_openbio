@@ -154,16 +154,16 @@ summary(thorax_model)
 We obtain an R^2 of roughly 0.42.
 
 ```{r plot of three predcitors}
-t_plot = ggplot(train_df, aes(x=(thorax_distal_transfer_fp_br), y=log(pitch_speed_mph))) + 
+t_plot = ggplot(train_df, aes(x=(log(thorax_distal_transfer_fp_br)), y=log(pitch_speed_mph))) + 
   geom_point() +
-  geom_smooth(method = "lm",formula = y ~ poly(x,3), color="blue") +
+  geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
   labs(
     x = "Thorax Distal Transfer Force Plate",
     y= "Log Pitch Speed MPH",
     title = "Thorax Distal Transfer Force Squared vs. Log Velocity"
   ) #thorax
 
-s_plot = ggplot(train_df, aes(x=(shoulder_transfer_fp_br), y=log(pitch_speed_mph))) + 
+s_plot = ggplot(train_df, aes(x=(log(shoulder_transfer_fp_br)), y=log(pitch_speed_mph))) + 
   geom_point() +
   geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
   labs(
@@ -197,9 +197,7 @@ plot(m_model)
 Integrating the three most correlated variables, we get a multiple R^2 of 0.5 and an adjusted R^2 of 0.49. This is okay, but there could be a better model out there.
 
 
-```{additive model}
-gam(formula = pitch_speed_mph ~ s(elbow_absorption_fp_br))
-```
+
 
 
 
