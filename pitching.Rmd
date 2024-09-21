@@ -147,7 +147,7 @@ The model yield an R-Squared of about 0.5 after removing outliers. This is okay 
 
 
 ```{r fitting models}
-thorax_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),2), data = train_df)
+thorax_model = lm(log(pitch_speed_mph) ~ poly((log(thorax_distal_transfer_fp_br)),3), data = train_df)
 summary(thorax_model)
 ```
 
@@ -156,7 +156,7 @@ We obtain an R^2 of roughly 0.42.
 ```{r plot of three predcitors}
 t_plot = ggplot(train_df, aes(x=(thorax_distal_transfer_fp_br), y=log(pitch_speed_mph))) + 
   geom_point() +
-  geom_smooth(method = "lm",formula = y ~ poly(x,2), color="blue") +
+  geom_smooth(method = "lm",formula = y ~ poly(x,3), color="blue") +
   labs(
     x = "Thorax Distal Transfer Force Plate",
     y= "Log Pitch Speed MPH",
