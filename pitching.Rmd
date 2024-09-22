@@ -217,9 +217,18 @@ boot.ci(bootstrap, type = "perc")
 ```
 
 
-The results of the bootstrapping indicates that the regression model is sound, with an R-squared confidence interval between .8016 and .8619, and an R-squared of 0.8248. Thus with the data that is provided the model predicts pitch speed with 80-87% accuracy.
+The results of the bootstrapping indicates that the regression model is sound, with an R-squared confidence interval between .8016 and .8619, and a mean R-squared of 0.8248. 
+
+```{r taking the five most important variables}
+p_values = summary(selected_mod)$coefficients[, "Pr(>|t|)"]
+p_values = p_values[-1] #removing the intercept
+
+top_vars = names(sort(p_values)[1:5]) #obtaining the top 5 significant variables
+print(top_vars)
+```
 
 
+These are the top 5 variables that are used to predict pitch speed in the selected model. If a pitching coach were to suggest mechanical changes to increase fastball velocity, a good place to start would be considering these five movements.
 
 
 
