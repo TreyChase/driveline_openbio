@@ -3,13 +3,17 @@ output:
   pdf_document: default
   html_document: default
 ---
-Author: Trey Chase
+Trey Chase
 Date: sys.date()
 
 ## Driveline Open Biomechanics Project
 
 
 ## Description
+
+All data obtained in this report is from the Driveline Open Biomechanics project on Github. 
+
+The purpose of this project is to predict fastball velocity from the bio-mechanical data provided, as well as determine the five most important predictors for coaches to emphasize. The model uses a step-wise regression algorithm to determine the most relevant predictors, and then I modified the model to satisfy the multi-collinearity condition as well as removing any variables with coefficients that are not statistically significant via t-test. I then used a 95% bootstrap confidence interval to validate the R-squared statistic of the model. To determine the five most important predictors, I extracted the variables with coefficients that have lowest p-value. An alternative approach would be to use principal component analysis. Leveraging predictive modeling with biomechanical data has potential to increase efficiency when developing pitchers and add a few ticks to their fastball at every level.
 
 
 ```{r loading packages, echo=FALSE, warning= FALSE, message=FALSE}
@@ -228,7 +232,23 @@ print(top_vars)
 ```
 
 
-These are the top 5 variables that are used to predict pitch speed in the selected model. If a pitching coach were to suggest mechanical changes to increase fastball velocity, a good place to start would be considering these five movements.
+These are the top 5 variables that are used to predict pitch speed in the selected model. If a pitching coach were to suggest mechanical changes to increase fastball velocity, a good place to start would be considering these five movements. The variables are:
+
+1. Elbow transfer
+2. Max torso rotational velocity
+3. Pelvis rotation 
+4. Torso rotation
+5. Max cog velocity
+
+-- Interpretation of Variables--
+
+-- From Driveline open bio data key --
+
+1. Energy transfer across throwing elbow between foot plant and ball release
+2. Max trunk axial rotation angle at ball release
+3. Pelvis axial rotation at foot plant
+4. Trunk axial rotation at maximum external rotation
+5. Peak center of gravity velocity towards home plate
 
 
 
