@@ -3,8 +3,8 @@ output:
   pdf_document: default
   html_document: default
 ---
-Trey Chase
-Date: sys.date()
+Author: Trey Chase
+
 
 ## Driveline Open Biomechanics Project
 
