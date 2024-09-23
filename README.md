@@ -1,4 +1,6 @@
-# driveline_openbio
+# Driveline Open Biomechanics Project
+
+## Trey Chase
 
 ## Description
 
