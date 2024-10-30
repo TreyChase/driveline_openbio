@@ -95,6 +95,15 @@ ylim = c(0, 1), type = "b")
 ```
 
 ```{r}
+pcr_m = pcr(exit_velo_mph_x~.,
+             data=train_df,
+             scale = TRUE,
+             validation = "CV")
 
+summary(pcr_m)
+validationplot(pcr_m, val.type = "MSEP")
+```
+```{r}
+pca_fit
 ```
 
