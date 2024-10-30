@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 hitters <- read_csv("hitters.csv")
 ```
+
 ```{r}
 dim(hitters)
 head(hitters)
@@ -30,7 +31,6 @@ hitters = hitters |>
   drop_na()
 ```
 
-
 ```{r}
 library(ggplot2)
 
@@ -42,7 +42,6 @@ ggplot(hitters, aes(x=exit_velo_mph_x)) +
 ```
 
 ### Principal Component Analysis
-
 
 ```{r}
 train_df = hitters |>
@@ -84,6 +83,7 @@ pca_var
 pve <- pca_var / sum(pca_var)
 pve
 ```
+
 ```{r}
 par(mfrow = c(1, 2))
 plot(pve, xlab = "Principal Component",
@@ -103,7 +103,62 @@ pcr_m = pcr(exit_velo_mph_x~.,
 summary(pcr_m)
 validationplot(pcr_m, val.type = "MSEP")
 ```
+
 ```{r}
-pca_fit
+pca_fit <- prcomp(predictors, scale. = TRUE)
+
+
+top_components <- data.frame(pca_fit$x[, 1:20], exit_velo_mph_x = response)
+
+
+pcr_fit <- lm(exit_velo_mph_x ~ ., data = top_components)
+
+
+summary(pcr_fit)
 ```
+
+### Partial Least Squares
+
+```{r}
+pls_fit <- plsr(exit_velo_mph_x ~ ., data = train_df, scale = TRUE, validation = "CV")
+summary(pls_fit)
+validationplot(pls_fit, val.type = "MSEP")
+```
+
+```{r}
+train_df <- na.omit(train_df)
+
+
+pls_fit <- plsr(exit_velo_mph_x ~ ., data = train_df, scale = TRUE, ncomp = 5)
+
+
+top_pls_components <- data.frame(pls_fit$scores[, 1:5], exit_velo_mph_x = train_df$exit_velo_mph_x)
+
+
+lm_fit <- lm(exit_velo_mph_x ~ ., data = top_pls_components)
+
+
+summary(lm_fit)
+```
+
+```{r}
+loadings <- pls_fit$loadings[, 1:5]
+
+top_contributors <- list()
+
+for (i in 1:5) {
+  component_loadings <- loadings[, i]
+  max_variable <- rownames(loadings)[which.max(abs(component_loadings))]
+  top_contributors[[paste0("Component_", i)]] <- max_variable
+  cat("Top contributing variable for Component", i, ":", max_variable, "\n")
+}
+
+print(top_contributors)
+
+```
+* 'bat_speed_xy_max_x' : maximum resultant angular velocity of the bat - just x and y components (deg/sec) 
+* 'pelvis_angle_fp_x' : pelvis angle (x) at foot plant - using K-Vest conventions (deg)
+* 'hand_speed_mag_max_x' : maximum resultant hand speed between first move and contact (deg/sec) 
+* 'pelvis_angle_hs_x' : pelvis angle (x) at heel strike - using K-Vest conventions (deg)
+* 'torso_angle_hs_z' : torso angle (x) at heel strike - using K-Vest conventions (deg)
 
