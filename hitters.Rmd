@@ -1,0 +1,100 @@
+---
+title: "hitting"
+author: "Trey Chase"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+hitters <- read_csv("hitters.csv")
+```
+```{r}
+dim(hitters)
+head(hitters)
+```
+
+```{r}
+library(tidyverse)
+
+sum(colSums(is.na(hitters)))
+#observed 35 NAs in the dataset
+#30 blast speed, 5 exit velo
+
+#dropping na values
+hitters = hitters |>
+  drop_na()
+```
+
+
+```{r}
+library(ggplot2)
+
+ggplot(hitters, aes(x=exit_velo_mph_x)) + 
+  geom_histogram(color = "black", fill = "orange") +
+  labs(
+    title = "Distribution of Exit Velocities"
+  )
+```
+
+### Principal Component Analysis
+
+
+```{r}
+train_df = hitters |>
+  #removing non-numeric/relevant columns
+  select(
+    -session,
+    -session_swing
+  )
+
+predictors = train_df |>
+  select(
+    -exit_velo_mph_x
+  )
+
+response = train_df |>
+  select(
+    exit_velo_mph_x
+  )
+```
+
+```{r}
+library(pls)
+
+pcomps = prcomp(predictors, scale = TRUE)
+par(mar = c(5, 5, 5, 5), cex = 0.2)  
+biplot(pcomps, scale = 0, cex = 1.5)
+```
+
+```{r}
+pcomps$rotation
+```
+
+```{r}
+pca_var <- pcomps$sdev^2
+pca_var
+```
+
+```{r}
+pve <- pca_var / sum(pca_var)
+pve
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(pve, xlab = "Principal Component",
+ylab = "Proportion of Variance Explained", ylim = c(0, 1),
+type = "b")
+plot(cumsum(pve), xlab = "Principal Component",
+ylab = "Cumulative Proportion of Variance Explained",
+ylim = c(0, 1), type = "b")
+```
+
+```{r}
+
+```
+
